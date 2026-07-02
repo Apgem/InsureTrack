@@ -71,15 +71,15 @@ export function Sidebar({
   }
 
   return (
-    <aside className="hidden w-[220px] shrink-0 flex-col border-r border-[#E5E5E0] bg-white md:flex">
-      <div className="flex h-16 items-center px-5">
+    <aside className="sticky top-0 hidden h-screen w-[220px] shrink-0 flex-col border-r border-[#E5E5E0] bg-white md:flex">
+      <div className="flex h-16 shrink-0 items-center px-5">
         <span className="text-[18px] font-bold tracking-tight">
           <span className="text-[#3B5E91]">Insure</span>
           <span className="text-[#C17B8A]">Track</span>
         </span>
       </div>
 
-      <nav className="flex-1 space-y-0.5 px-3 py-2">
+      <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 py-2">
         {mainNav.map((item) => (
           <NavLink key={item.href} {...item} />
         ))}
@@ -87,7 +87,7 @@ export function Sidebar({
         <NavLink {...settingsNav} />
       </nav>
 
-      <div className="border-t border-[#E5E5E0] p-3">
+      <div className="shrink-0 border-t border-[#E5E5E0] p-3">
         <div className="flex items-center gap-3">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#EEF4FF] text-xs font-bold text-[#3B5E91]">
             {initialsOf(fullName ?? null)}

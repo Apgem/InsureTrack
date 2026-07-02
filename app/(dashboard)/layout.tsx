@@ -29,7 +29,7 @@ export default async function DashboardLayout({
     <div className="flex min-h-screen bg-[#FAFAF8]">
       <Sidebar fullName={profile?.full_name ?? null} />
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-16 items-center justify-between border-b border-[#E5E5E0] bg-white px-4 sm:px-6">
+        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-[#E5E5E0] bg-white px-4 sm:px-6">
           <div className="md:hidden">
             <span className="text-[17px] font-bold tracking-tight">
               <span className="text-[#3B5E91]">Insure</span>
