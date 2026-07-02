@@ -2,10 +2,14 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Mail, Pencil, Phone, Trash2 } from "lucide-react";
 
-import type { LeadStatus } from "@/types/database";
+import type { LeadStatus, TriggerType } from "@/types/database";
 import { createClient } from "@/lib/supabase/server";
 import { deleteLead } from "@/app/(dashboard)/leads/actions";
-import { LEAD_SOURCE_LABELS, LEAD_STATUSES } from "@/lib/constants";
+import {
+  LEAD_SOURCE_LABELS,
+  LEAD_STATUSES,
+  TRIGGER_TYPE_LABELS,
+} from "@/lib/constants";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +25,11 @@ import { LeadFormSheet } from "@/components/leads/lead-form-sheet";
 import { ConvertLeadButton } from "@/components/leads/convert-lead-button";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { LeadStatusControl } from "@/components/leads/lead-status-control";
+import {
+  AddToSequenceButton,
+  type EnrollableSequence,
+} from "@/components/sequences/add-to-sequence-button";
+import { UnenrollButton } from "@/components/sequences/unenroll-button";
 
 export default async function LeadDetailPage({
   params,
@@ -29,19 +38,28 @@ export default async function LeadDetailPage({
 }) {
   const supabase = createClient();
 
-  const [{ data: lead }, { data: enrollments }, { data: messages }] =
-    await Promise.all([
-      supabase.from("leads").select("*").eq("id", params.id).maybeSingle(),
-      supabase
-        .from("sequence_enrollments")
-        .select("id, sequence_id, status")
-        .eq("lead_id", params.id),
-      supabase
-        .from("messages_log")
-        .select("id, channel, subject, body, status, sent_at")
-        .eq("lead_id", params.id)
-        .order("sent_at", { ascending: false }),
-    ]);
+  const [
+    { data: lead },
+    { data: enrollments },
+    { data: messages },
+    { data: activeSeqs },
+  ] = await Promise.all([
+    supabase.from("leads").select("*").eq("id", params.id).maybeSingle(),
+    supabase
+      .from("sequence_enrollments")
+      .select("id, sequence_id, status")
+      .eq("lead_id", params.id),
+    supabase
+      .from("messages_log")
+      .select("id, channel, subject, body, status, sent_at")
+      .eq("lead_id", params.id)
+      .order("sent_at", { ascending: false }),
+    supabase
+      .from("sequences")
+      .select("id, name, trigger_type")
+      .eq("is_active", true)
+      .order("name"),
+  ]);
 
   if (!lead) notFound();
 
@@ -59,6 +77,20 @@ export default async function LeadDetailPage({
       .in("id", seqIds);
     for (const s of seqs ?? []) seqNames.set(s.id, s.name);
   }
+
+  // Active sequences this lead is NOT already actively enrolled in.
+  const enrolledActiveSeqIds = new Set(
+    (enrollments ?? [])
+      .filter((e) => e.status === "active")
+      .map((e) => e.sequence_id)
+  );
+  const availableSequences: EnrollableSequence[] = (activeSeqs ?? [])
+    .filter((s) => !enrolledActiveSeqIds.has(s.id))
+    .map((s) => ({
+      id: s.id,
+      name: s.name,
+      trigger: TRIGGER_TYPE_LABELS[s.trigger_type as TriggerType],
+    }));
 
   return (
     <div className="space-y-6">
@@ -214,8 +246,12 @@ export default async function LeadDetailPage({
           </Card>
 
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0">
               <CardTitle className="text-lg">Sequence enrollments</CardTitle>
+              <AddToSequenceButton
+                leadId={lead.id}
+                sequences={availableSequences}
+              />
             </CardHeader>
             <CardContent>
               {enrollments && enrollments.length > 0 ? (
@@ -223,16 +259,27 @@ export default async function LeadDetailPage({
                   {enrollments.map((e) => (
                     <div
                       key={e.id}
-                      className="flex items-center justify-between text-sm"
+                      className="flex items-center justify-between gap-2 text-sm"
                     >
                       <span>{seqNames.get(e.sequence_id) ?? "Sequence"}</span>
-                      <Badge variant="secondary">{e.status}</Badge>
+                      <span className="flex items-center gap-1">
+                        <Badge
+                          variant={e.status === "active" ? "ok" : "neutral"}
+                        >
+                          {e.status}
+                        </Badge>
+                        {e.status === "active" && (
+                          <UnenrollButton enrollmentId={e.id} />
+                        )}
+                      </span>
                     </div>
                   ))}
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground">
-                  Not enrolled in any sequences yet.
+                  Not enrolled in any sequences yet. Use{" "}
+                  <span className="font-medium">Add to sequence</span> to start a
+                  nurture follow-up for this lead.
                 </p>
               )}
             </CardContent>

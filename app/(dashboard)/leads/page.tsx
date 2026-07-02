@@ -37,9 +37,12 @@ export default async function LeadsPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Leads</h1>
-          <p className="text-sm text-muted-foreground">
-            Your prospect pipeline. Drag cards to update their stage.
+          <h1 className="text-2xl font-bold tracking-tight text-[#1a1a1a]">
+            Leads
+          </h1>
+          <p className="text-sm text-[#5a6475]">
+            Prospects you haven&apos;t sold yet. Drag cards through the pipeline,
+            then convert a won lead into a client.
           </p>
         </div>
         <LeadFormSheet

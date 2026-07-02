@@ -39,13 +39,23 @@ export default async function SequencesPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Sequences</h1>
-          <p className="text-sm text-muted-foreground">
-            Automated email &amp; SMS follow-ups. Toggle a sequence on to let it
-            enroll and send.
+          <h1 className="text-2xl font-bold tracking-tight text-[#1a1a1a]">
+            Sequences
+          </h1>
+          <p className="text-sm text-[#5a6475]">
+            Automated email &amp; SMS follow-ups. Toggle one on to let it enroll
+            and send.
           </p>
         </div>
         <CreateSequenceDialog />
+      </div>
+
+      <div className="rounded-[10px] border border-[#D6E4FA] bg-[#EEF4FF] px-4 py-3 text-sm text-[#3B5E91]">
+        <span className="font-semibold">How enrollment works:</span> each
+        sequence has a <span className="font-semibold">trigger</span> that
+        auto-enrolls the right people — e.g. 30/60/90 days before a renewal, or
+        when you add a new client or lead. You can also enroll anyone by hand
+        from a sequence, or from a client&apos;s or lead&apos;s profile.
       </div>
 
       {list.length === 0 ? (

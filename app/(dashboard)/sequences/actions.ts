@@ -217,6 +217,96 @@ export async function moveStep(
   return {};
 }
 
+// ---------------------------------------------------------------------------
+// Manual enrollment
+// ---------------------------------------------------------------------------
+
+export type EnrollTarget = { clientId?: string; leadId?: string };
+export type EnrollResult = {
+  error?: string;
+  enrolled?: number;
+  skipped?: number;
+};
+
+/**
+ * Manually enroll one or more clients/leads into a sequence. The daily cron
+ * then processes the enrollment like any auto-enrolled one. Already-active
+ * enrollments are skipped (the partial unique index is the backstop).
+ */
+export async function enrollInSequence(
+  sequenceId: string,
+  targets: EnrollTarget[]
+): Promise<EnrollResult> {
+  const { supabase, user } = await getAgent();
+  if (!user) return { error: "Not authenticated." };
+  if (!targets.length) return { error: "No one selected." };
+
+  // Verify the sequence belongs to this agent.
+  const { data: seq } = await supabase
+    .from("sequences")
+    .select("id")
+    .eq("id", sequenceId)
+    .eq("agent_id", user.id)
+    .maybeSingle();
+  if (!seq) return { error: "Sequence not found." };
+
+  let enrolled = 0;
+  let skipped = 0;
+  for (const t of targets) {
+    if (!t.clientId && !t.leadId) continue;
+    const col = t.clientId ? "client_id" : "lead_id";
+    const val = (t.clientId ?? t.leadId) as string;
+
+    // Skip if already actively enrolled.
+    const { data: existing } = await supabase
+      .from("sequence_enrollments")
+      .select("id")
+      .eq("sequence_id", sequenceId)
+      .eq(col, val)
+      .eq("status", "active")
+      .maybeSingle();
+    if (existing) {
+      skipped++;
+      continue;
+    }
+
+    const { error } = await supabase.from("sequence_enrollments").insert({
+      sequence_id: sequenceId,
+      client_id: t.clientId ?? null,
+      lead_id: t.leadId ?? null,
+      current_step: 0,
+      status: "active",
+    });
+    if (error) {
+      if (error.message.toLowerCase().includes("duplicate")) skipped++;
+      else return { error: error.message };
+    } else {
+      enrolled++;
+    }
+    if (t.clientId) revalidatePath(`/clients/${t.clientId}`);
+    if (t.leadId) revalidatePath(`/leads/${t.leadId}`);
+  }
+
+  revalidatePath("/sequences");
+  revalidatePath(`/sequences/${sequenceId}`);
+  return { enrolled, skipped };
+}
+
+/** Cancel an enrollment (stops future sends; keeps message history). */
+export async function unenroll(enrollmentId: string): Promise<SeqActionResult> {
+  const { supabase, user } = await getAgent();
+  if (!user) return { error: "Not authenticated." };
+
+  const { error } = await supabase
+    .from("sequence_enrollments")
+    .update({ status: "cancelled" })
+    .eq("id", enrollmentId);
+  if (error) return { error: error.message };
+
+  revalidatePath("/sequences");
+  return {};
+}
+
 /**
  * Send a test of one step to the agent themselves, with sample variables.
  * Not recorded to messages_log (it's a preview, not a real client send).

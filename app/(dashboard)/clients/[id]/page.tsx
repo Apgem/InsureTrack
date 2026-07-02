@@ -9,10 +9,11 @@ import {
   Trash2,
 } from "lucide-react";
 
-import type { PolicyStatus, PolicyType } from "@/types/database";
+import type { PolicyStatus, PolicyType, TriggerType } from "@/types/database";
 import { createClient } from "@/lib/supabase/server";
 import { deleteClientRecord } from "@/app/(dashboard)/clients/actions";
 import { getCrossSellSuggestions } from "@/lib/cross-sell";
+import { TRIGGER_TYPE_LABELS } from "@/lib/constants";
 import { formatDate } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,11 @@ import { ClientFormSheet } from "@/components/clients/client-form-sheet";
 import { PolicyList } from "@/components/clients/policy-list";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { CrossSellAlert } from "@/components/cross-sell-alert";
+import {
+  AddToSequenceButton,
+  type EnrollableSequence,
+} from "@/components/sequences/add-to-sequence-button";
+import { UnenrollButton } from "@/components/sequences/unenroll-button";
 
 export default async function ClientDetailPage({
   params,
@@ -35,8 +41,13 @@ export default async function ClientDetailPage({
 }) {
   const supabase = createClient();
 
-  const [{ data: client }, { data: policies }, { data: enrollments }, { data: messages }] =
-    await Promise.all([
+  const [
+    { data: client },
+    { data: policies },
+    { data: enrollments },
+    { data: messages },
+    { data: activeSeqs },
+  ] = await Promise.all([
       supabase
         .from("clients")
         .select("*")
@@ -58,6 +69,11 @@ export default async function ClientDetailPage({
         .select("id, channel, subject, body, status, sent_at")
         .eq("client_id", params.id)
         .order("sent_at", { ascending: false }),
+      supabase
+        .from("sequences")
+        .select("id, name, trigger_type")
+        .eq("is_active", true)
+        .order("name"),
     ]);
 
   if (!client) notFound();
@@ -85,6 +101,20 @@ export default async function ClientDetailPage({
       .in("id", seqIds);
     for (const s of seqs ?? []) seqNames.set(s.id, s.name);
   }
+
+  // Active sequences this client is NOT already actively enrolled in.
+  const enrolledActiveSeqIds = new Set(
+    (enrollments ?? [])
+      .filter((e) => e.status === "active")
+      .map((e) => e.sequence_id)
+  );
+  const availableSequences: EnrollableSequence[] = (activeSeqs ?? [])
+    .filter((s) => !enrolledActiveSeqIds.has(s.id))
+    .map((s) => ({
+      id: s.id,
+      name: s.name,
+      trigger: TRIGGER_TYPE_LABELS[s.trigger_type as TriggerType],
+    }));
 
   return (
     <div className="space-y-6">
@@ -220,8 +250,12 @@ export default async function ClientDetailPage({
           </Card>
 
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0">
               <CardTitle className="text-lg">Sequence enrollments</CardTitle>
+              <AddToSequenceButton
+                clientId={client.id}
+                sequences={availableSequences}
+              />
             </CardHeader>
             <CardContent>
               {enrollments && enrollments.length > 0 ? (
@@ -229,16 +263,27 @@ export default async function ClientDetailPage({
                   {enrollments.map((e) => (
                     <div
                       key={e.id}
-                      className="flex items-center justify-between text-sm"
+                      className="flex items-center justify-between gap-2 text-sm"
                     >
                       <span>{seqNames.get(e.sequence_id) ?? "Sequence"}</span>
-                      <Badge variant="secondary">{e.status}</Badge>
+                      <span className="flex items-center gap-1">
+                        <Badge
+                          variant={e.status === "active" ? "ok" : "neutral"}
+                        >
+                          {e.status}
+                        </Badge>
+                        {e.status === "active" && (
+                          <UnenrollButton enrollmentId={e.id} />
+                        )}
+                      </span>
                     </div>
                   ))}
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground">
-                  Not enrolled in any sequences yet.
+                  Not enrolled in any sequences yet. Use{" "}
+                  <span className="font-medium">Add to sequence</span> to enroll
+                  this client in an automated follow-up.
                 </p>
               )}
             </CardContent>

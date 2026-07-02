@@ -74,9 +74,16 @@ export default async function ClientsPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Clients</h1>
-          <p className="text-sm text-muted-foreground">
-            Everyone in your book of business.
+          <h1 className="text-2xl font-bold tracking-tight text-[#1a1a1a]">
+            Clients
+          </h1>
+          <p className="text-sm text-[#5a6475]">
+            People who already hold policies with you — track renewals and
+            enroll them in follow-ups. New prospects live under{" "}
+            <Link href="/leads" className="font-medium text-[#3B5E91] hover:underline">
+              Leads
+            </Link>
+            .
           </p>
         </div>
         <div className="flex gap-2">
