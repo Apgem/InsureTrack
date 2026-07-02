@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Loader2, UserCheck } from "lucide-react";
 
 import { convertLeadToClient } from "@/app/(dashboard)/leads/actions";
@@ -29,6 +30,7 @@ export function ConvertLeadButton({ leadId }: { leadId: string }) {
       if (res.error) {
         setError(res.error);
       } else {
+        toast.success("Lead converted to client");
         setOpen(false);
         router.push(res.id ? `/clients/${res.id}` : "/clients");
       }

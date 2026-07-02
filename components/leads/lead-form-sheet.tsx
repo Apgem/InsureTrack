@@ -3,6 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
 import type { LeadSource, LeadStatus } from "@/types/database";
@@ -104,6 +105,7 @@ export function LeadFormSheet({
       if (res.error) {
         setError(res.error);
       } else {
+        toast.success(mode === "create" ? "Lead added" : "Lead updated");
         setOpen(false);
         router.refresh();
       }

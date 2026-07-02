@@ -3,7 +3,8 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Check, Loader2, Send } from "lucide-react";
+import { toast } from "sonner";
+import { Loader2, Send } from "lucide-react";
 
 import type { PolicyType } from "@/types/database";
 import {
@@ -28,25 +29,28 @@ export type RenewalItem = {
 export function RenewalCard({ item }: { item: RenewalItem }) {
   const router = useRouter();
   const [isPending, startTransition] = React.useTransition();
-  const [feedback, setFeedback] = React.useState<string | null>(null);
-  const [error, setError] = React.useState<string | null>(null);
 
   function mark(status: "renewed" | "lapsed") {
-    setError(null);
     startTransition(async () => {
       const res = await setPolicyStatus(item.policyId, status);
-      if (res.error) setError(res.error);
-      else router.refresh();
+      if (res.error) {
+        toast.error(res.error);
+      } else {
+        toast.success(
+          status === "renewed"
+            ? `Marked ${item.clientName}’s policy renewed`
+            : `Marked ${item.clientName}’s policy lapsed`
+        );
+        router.refresh();
+      }
     });
   }
 
   function remind() {
-    setError(null);
-    setFeedback(null);
     startTransition(async () => {
       const res = await sendRenewalReminder(item.policyId);
-      if (res.error) setError(res.error);
-      else setFeedback(res.message ?? "Reminder sent.");
+      if (res.error) toast.error(res.error);
+      else toast.success(res.message ?? "Reminder sent.");
     });
   }
 
@@ -76,14 +80,6 @@ export function RenewalCard({ item }: { item: RenewalItem }) {
       <p className="mt-1 text-sm text-muted-foreground">
         Renews {formatDate(item.renewalDate)}
       </p>
-
-      {feedback && (
-        <p className="mt-2 flex items-center gap-1 text-xs text-green-600">
-          <Check className="h-3 w-3" />
-          {feedback}
-        </p>
-      )}
-      {error && <p className="mt-2 text-xs text-destructive">{error}</p>}
 
       <div className="mt-3 flex flex-wrap gap-2">
         <Button

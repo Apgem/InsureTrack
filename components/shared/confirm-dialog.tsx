@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ export function ConfirmDialog({
   title,
   description,
   confirmLabel = "Delete",
+  successMessage = "Deleted",
   trigger,
   onConfirm,
   redirectTo,
@@ -26,6 +28,7 @@ export function ConfirmDialog({
   title: string;
   description: string;
   confirmLabel?: string;
+  successMessage?: string;
   trigger: React.ReactNode;
   onConfirm: () => Promise<{ error?: string } | void>;
   /** Navigate here on success instead of refreshing in place. */
@@ -42,7 +45,9 @@ export function ConfirmDialog({
       const res = await onConfirm();
       if (res && res.error) {
         setError(res.error);
+        toast.error(res.error);
       } else {
+        toast.success(successMessage);
         setOpen(false);
         if (redirectTo) router.push(redirectTo);
         else router.refresh();

@@ -1,8 +1,12 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { CalendarClock } from "lucide-react";
 
 import type { PolicyType } from "@/types/database";
 import { createClient } from "@/lib/supabase/server";
 import { daysUntil } from "@/lib/format";
+import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/shared/empty-state";
 import {
   RenewalCard,
   type RenewalItem,
@@ -61,15 +65,29 @@ export default async function RenewalsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Renewals</h1>
-        <p className="text-sm text-muted-foreground">
+        <h1 className="text-2xl font-bold tracking-tight text-[#1a1a1a]">
+          Renewals
+        </h1>
+        <p className="text-sm text-[#5a6475]">
           Active policies renewing in the next 90 days. Send a reminder or mark
           the outcome.
         </p>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        {buckets.map((b) => (
+      {items.length === 0 ? (
+        <EmptyState
+          icon={CalendarClock}
+          title="No upcoming renewals"
+          description="Clients with policies renewing in the next 90 days appear here."
+          action={
+            <Button asChild size="sm">
+              <Link href="/clients">Add a client</Link>
+            </Button>
+          }
+        />
+      ) : (
+        <div className="grid gap-6 lg:grid-cols-3">
+          {buckets.map((b) => (
           <div key={b.label} className="space-y-3">
             <div className="flex items-baseline justify-between">
               <h2 className="font-semibold">{b.label}</h2>
@@ -89,8 +107,9 @@ export default async function RenewalsPage() {
               </div>
             )}
           </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

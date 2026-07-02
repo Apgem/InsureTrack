@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
-import { Plus } from "lucide-react";
+import { Plus, TrendingUp } from "lucide-react";
 
 import type { LeadStatus } from "@/types/database";
 import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/shared/empty-state";
 import { LeadFormSheet } from "@/components/leads/lead-form-sheet";
 import { LeadsBoard, type LeadCard } from "@/components/leads/leads-board";
 
@@ -52,7 +53,26 @@ export default async function LeadsPage() {
         />
       </div>
 
-      <LeadsBoard leads={cards} />
+      {cards.length === 0 ? (
+        <EmptyState
+          icon={TrendingUp}
+          title="No leads yet"
+          description="Add your first prospect to start tracking them through your pipeline."
+          action={
+            <LeadFormSheet
+              mode="create"
+              trigger={
+                <Button size="sm">
+                  <Plus className="h-4 w-4" />
+                  Add a lead
+                </Button>
+              }
+            />
+          }
+        />
+      ) : (
+        <LeadsBoard leads={cards} />
+      )}
     </div>
   );
 }

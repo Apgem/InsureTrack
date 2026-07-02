@@ -6,7 +6,7 @@ import type { TriggerType } from "@/types/database";
 import { createClient } from "@/lib/supabase/server";
 import { TRIGGER_TYPE_LABELS } from "@/lib/constants";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import { EmptyState } from "@/components/shared/empty-state";
 import { CreateSequenceDialog } from "@/components/sequences/create-sequence-dialog";
 import { SequenceToggle } from "@/components/sequences/sequence-toggle";
 
@@ -49,14 +49,12 @@ export default async function SequencesPage() {
       </div>
 
       {list.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center gap-3 py-12 text-center">
-            <Workflow className="h-8 w-8 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">
-              No sequences yet. Create your first automation.
-            </p>
-          </CardContent>
-        </Card>
+        <EmptyState
+          icon={Workflow}
+          title="No sequences yet"
+          description="Create an automated email or SMS sequence to follow up with clients before renewal."
+          action={<CreateSequenceDialog />}
+        />
       ) : (
         <div className="space-y-2">
           {list.map((s) => {
@@ -65,7 +63,7 @@ export default async function SequencesPage() {
             return (
               <div
                 key={s.id}
-                className="flex items-center gap-4 rounded-lg border bg-card p-4"
+                className="flex items-center gap-4 rounded-[14px] border border-[#E5E5E0] bg-white p-4"
               >
                 <div className="flex-1">
                   <Link

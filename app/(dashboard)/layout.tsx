@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-import { ShieldCheck } from "lucide-react";
 
 import { Sidebar } from "@/components/shared/sidebar";
 import { UserNav } from "@/components/shared/user-nav";
@@ -27,13 +26,15 @@ export default async function DashboardLayout({
     .single();
 
   return (
-    <div className="flex min-h-screen bg-muted/30">
-      <Sidebar />
+    <div className="flex min-h-screen bg-[#FAFAF8]">
+      <Sidebar fullName={profile?.full_name ?? null} />
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-16 items-center justify-between border-b bg-card px-4 sm:px-6">
-          <div className="flex items-center gap-2 text-primary md:hidden">
-            <ShieldCheck className="h-5 w-5" />
-            <span className="font-semibold">InsureTrack</span>
+        <header className="flex h-16 items-center justify-between border-b border-[#E5E5E0] bg-white px-4 sm:px-6">
+          <div className="md:hidden">
+            <span className="text-[17px] font-bold tracking-tight">
+              <span className="text-[#3B5E91]">Insure</span>
+              <span className="text-[#C17B8A]">Track</span>
+            </span>
           </div>
           <div className="ml-auto">
             <UserNav

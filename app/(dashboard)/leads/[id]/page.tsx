@@ -95,6 +95,7 @@ export default async function LeadDetailPage({
           <ConfirmDialog
             title="Delete lead?"
             description="This permanently removes the lead. This can't be undone."
+            successMessage="Lead deleted"
             onConfirm={deleteLead.bind(null, lead.id)}
             redirectTo="/leads"
             trigger={

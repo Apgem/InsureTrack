@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 import { toggleSequence } from "@/app/(dashboard)/sequences/actions";
 import { Switch } from "@/components/ui/switch";
@@ -21,8 +22,13 @@ export function SequenceToggle({
     setChecked(value);
     startTransition(async () => {
       const res = await toggleSequence(id, value);
-      if (res.error) setChecked(!value); // revert on failure
-      else router.refresh();
+      if (res.error) {
+        setChecked(!value); // revert on failure
+        toast.error(res.error);
+      } else {
+        toast.success(value ? "Sequence activated" : "Sequence paused");
+        router.refresh();
+      }
     });
   }
 

@@ -4,37 +4,72 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* --- Design tokens (raw hex, usable via var(--token)) --- */
+    /* Brand */
+    --blue-50: #eef4ff;
+    --blue-100: #d6e4fa;
+    --blue-500: #3b5e91;
+    --blue-600: #2d4a73;
+    --blue-900: #0f1923;
+    /* Accent */
+    --rose-50: #fff0f3;
+    --rose-100: #f5c4d0;
+    --rose-400: #c17b8a;
+    --rose-600: #9a4f60;
+    /* Semantic */
+    --sage-50: #f0fbf4;
+    --sage-400: #6b9e7a;
+    --sage-600: #4a7a57;
+    --amber-50: #fff8e6;
+    --amber-400: #e8a838;
+    --amber-600: #b87a1a;
+    --red-50: #fff0f0;
+    --red-400: #c94040;
+    /* Neutrals */
+    --gray-50: #fafaf8;
+    --gray-100: #f2f2ef;
+    --gray-200: #e5e5e0;
+    --gray-400: #9a9a94;
+    --gray-600: #5a6475;
+    --gray-900: #1a1a1a;
+    /* Radius scale */
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --radius-xl: 18px;
+
+    /* --- shadcn/ui HSL tokens, retuned to the InsureTrack palette --- */
+    --background: 60 20% 98%;
+    --foreground: 0 0% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 0 0% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 0 0% 10%;
 
-    /* Navy/slate primary */
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Brand blue #3B5E91 */
+    --primary: 215 42% 40%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 60 10% 94%;
+    --secondary-foreground: 218 13% 41%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 60 10% 94%;
+    --muted-foreground: 218 13% 41%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 60 10% 94%;
+    --accent-foreground: 0 0% 10%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    /* Red #C94040 */
+    --destructive: 0 56% 52%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 60 9% 89%;
+    --input: 60 9% 89%;
+    --ring: 215 42% 40%;
 
-    /* Slight radius — no rounded-pill buttons */
-    --radius: 0.5rem;
+    --radius: 0.625rem;
   }
 
   .dark {
@@ -71,8 +106,72 @@
 @layer base {
   * {
     @apply border-border;
+    box-sizing: border-box;
+  }
+  html {
+    scroll-behavior: smooth;
   }
   body {
     @apply bg-background text-foreground;
+    background-color: #fafaf8;
+    color: #1a1a1a;
+    font-size: 15px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
   }
+}
+
+/* Urgent renewal pulse — alternates the left border of ≤7-day rows. */
+@keyframes pulse-border {
+  0%,
+  100% {
+    border-left-color: #c94040;
+  }
+  50% {
+    border-left-color: #ffbebe;
+  }
+}
+
+/* --- Sonner toasts, themed to the InsureTrack palette --- */
+[data-sonner-toast] {
+  border-radius: 10px !important;
+  border-width: 1px !important;
+  border-style: solid !important;
+  font-size: 14px;
+  font-weight: 500;
+}
+[data-sonner-toast][data-type="success"] {
+  background: #f0fbf4 !important;
+  border-color: #b8e0c4 !important;
+  color: #4a7a57 !important;
+}
+[data-sonner-toast][data-type="success"] [data-icon] {
+  color: #6b9e7a !important;
+}
+[data-sonner-toast][data-type="error"] {
+  background: #fff0f0 !important;
+  border-color: #f5bebe !important;
+  color: #c94040 !important;
+}
+[data-sonner-toast][data-type="error"] [data-icon] {
+  color: #c94040 !important;
+}
+[data-sonner-toast][data-type="info"] {
+  background: #eef4ff !important;
+  border-color: #d6e4fa !important;
+  color: #3b5e91 !important;
+}
+[data-sonner-toast][data-type="info"] [data-icon] {
+  color: #3b5e91 !important;
+}
+[data-sonner-toast][data-type="warning"] {
+  background: #fff8e6 !important;
+  border-color: #f5d78e !important;
+  color: #b87a1a !important;
+}
+[data-sonner-toast][data-type="warning"] [data-icon] {
+  color: #b87a1a !important;
+}
+[data-sonner-toast] [data-description] {
+  color: #5a6475 !important;
 }

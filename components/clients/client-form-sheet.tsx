@@ -3,6 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
 import {
@@ -91,6 +92,7 @@ export function ClientFormSheet({
       if (res.error) {
         setError(res.error);
       } else {
+        toast.success(mode === "create" ? "Client added" : "Client updated");
         setOpen(false);
         router.refresh();
       }

@@ -2,12 +2,14 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ChevronRight, Search } from "lucide-react";
+import { ChevronRight, Search, Upload, Users } from "lucide-react";
 
 import type { PolicyType } from "@/types/database";
 import { POLICY_TYPES, POLICY_TYPE_LABELS } from "@/lib/constants";
 import { formatDate } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/shared/empty-state";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -74,6 +76,24 @@ export function ClientsTable({ clients }: { clients: ClientListRow[] }) {
     });
   }, [clients, query, typeFilter, monthFilter]);
 
+  if (clients.length === 0) {
+    return (
+      <EmptyState
+        icon={Users}
+        title="No clients yet"
+        description="Upload a CSV or add your first client to start tracking renewals."
+        action={
+          <Button asChild size="sm">
+            <Link href="/clients/import">
+              <Upload className="h-4 w-4" />
+              Import your book of business
+            </Link>
+          </Button>
+        }
+      />
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -114,7 +134,7 @@ export function ClientsTable({ clients }: { clients: ClientListRow[] }) {
         </Select>
       </div>
 
-      <div className="rounded-lg border bg-card">
+      <div className="overflow-hidden rounded-[14px] border border-[#E5E5E0] bg-white">
         <Table>
           <TableHeader>
             <TableRow>

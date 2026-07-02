@@ -2,7 +2,6 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft,
-  Lightbulb,
   Mail,
   MapPin,
   Pencil,
@@ -13,7 +12,6 @@ import {
 import type { PolicyStatus, PolicyType } from "@/types/database";
 import { createClient } from "@/lib/supabase/server";
 import { deleteClientRecord } from "@/app/(dashboard)/clients/actions";
-import { POLICY_TYPE_LABELS } from "@/lib/constants";
 import { getCrossSellSuggestions } from "@/lib/cross-sell";
 import { formatDate } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +26,7 @@ import { Separator } from "@/components/ui/separator";
 import { ClientFormSheet } from "@/components/clients/client-form-sheet";
 import { PolicyList } from "@/components/clients/policy-list";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
+import { CrossSellAlert } from "@/components/cross-sell-alert";
 
 export default async function ClientDetailPage({
   params,
@@ -126,6 +125,7 @@ export default async function ClientDetailPage({
           <ConfirmDialog
             title="Delete client?"
             description="This permanently removes the client and all their policies. This can't be undone."
+            successMessage="Client deleted"
             onConfirm={deleteClientRecord.bind(null, client.id)}
             redirectTo="/clients"
             trigger={
@@ -139,16 +139,12 @@ export default async function ClientDetailPage({
       </div>
 
       {crossSell.length > 0 && (
-        <div className="flex items-start gap-3 rounded-lg border border-amber-300 bg-amber-50 p-4 text-amber-900">
-          <Lightbulb className="mt-0.5 h-5 w-5 shrink-0" />
-          <div className="text-sm">
-            <span className="font-medium">Cross-sell opportunity: </span>
-            This client holds{" "}
-            {activeTypes.map((t) => POLICY_TYPE_LABELS[t]).join(", ")} but no{" "}
-            {crossSell.map((t) => POLICY_TYPE_LABELS[t]).join(" or ")}. Consider
-            a cross-sell.
-          </div>
-        </div>
+        <CrossSellAlert
+          clientId={client.id}
+          clientName={client.full_name}
+          has={activeTypes}
+          missing={crossSell}
+        />
       )}
 
       <div className="grid gap-6 lg:grid-cols-3">
