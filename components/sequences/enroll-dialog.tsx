@@ -80,11 +80,12 @@ export function EnrollDialog({
         toast.error(res.error);
         return;
       }
-      toast.success(
-        `Enrolled ${res.enrolled}${
-          res.skipped ? ` · ${res.skipped} already in` : ""
-        }`
-      );
+      const parts = [`Enrolled ${res.enrolled ?? 0}`];
+      if (res.skipped) parts.push(`${res.skipped} already in`);
+      if (res.failed) parts.push(`${res.failed} failed`);
+      const summary = parts.join(" · ");
+      if (res.failed) toast.warning(summary);
+      else toast.success(summary);
       setOpen(false);
       router.refresh();
     });

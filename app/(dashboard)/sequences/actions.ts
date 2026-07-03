@@ -226,12 +226,18 @@ export type EnrollResult = {
   error?: string;
   enrolled?: number;
   skipped?: number;
+  failed?: number;
 };
 
 /**
  * Manually enroll one or more clients/leads into a sequence. The daily cron
  * then processes the enrollment like any auto-enrolled one. Already-active
  * enrollments are skipped (the partial unique index is the backstop).
+ *
+ * A single bad target (e.g. a client deleted in another tab while this
+ * dialog was open) must not discard progress already made on the others —
+ * every target is attempted, and failures are counted rather than aborting
+ * the batch.
  */
 export async function enrollInSequence(
   sequenceId: string,
@@ -252,6 +258,7 @@ export async function enrollInSequence(
 
   let enrolled = 0;
   let skipped = 0;
+  let failed = 0;
   for (const t of targets) {
     if (!t.clientId && !t.leadId) continue;
     const col = t.clientId ? "client_id" : "lead_id";
@@ -279,17 +286,28 @@ export async function enrollInSequence(
     });
     if (error) {
       if (error.message.toLowerCase().includes("duplicate")) skipped++;
-      else return { error: error.message };
-    } else {
-      enrolled++;
+      else failed++;
+      continue;
     }
+    enrolled++;
     if (t.clientId) revalidatePath(`/clients/${t.clientId}`);
     if (t.leadId) revalidatePath(`/leads/${t.leadId}`);
   }
 
   revalidatePath("/sequences");
   revalidatePath(`/sequences/${sequenceId}`);
-  return { enrolled, skipped };
+
+  if (enrolled === 0 && skipped === 0 && failed > 0) {
+    return {
+      error:
+        failed === 1
+          ? "Couldn't enroll — that contact may have been deleted. Refresh and try again."
+          : `Couldn't enroll any of the ${failed} selected — they may have been deleted. Refresh and try again.`,
+      failed,
+    };
+  }
+
+  return { enrolled, skipped, failed };
 }
 
 /** Cancel an enrollment (stops future sends; keeps message history). */
